@@ -92,11 +92,14 @@
             
     </build>
     
-    <!-- For JDK8 the standard Javadoc produced is just plain ugly and not very
+    <!-- 
+    For JDK8 the standard Javadoc produced is just plain ugly and not very
     readable. So we use our own stylesheet instead which fixes the appearance to
     be more of a JDK7 look-a-like. We also add the ability to do syntax highlighting
-    of java code snippets inside Javadoc. 
-    Note that this happens only if we are building under JDK8.         -->
+    of java code snippets inside Javadoc. Note that this happens only if we are 
+    building under JDK8.         
+    Note that the Addicticks Javadoc stylesheet customizations are not
+    publicly available.                                                             -->
     <profiles>
         <profile>
             <activation>
@@ -116,9 +119,11 @@
                                     <version>1.0</version>
                                 </resourceArtifact>
                             </resourcesArtifacts>
+                            
+                            <!-- Shown in upper right corner : -->
                             <header>Version ${project.version}</header>
-                            <doctitle>bla bla bla </doctitle>
-                            <!-- Add SyntaxHighlighter feature.
+                            
+                            <!-- Add SyntaxHighlighter feature. (http://alexgorbatchev.com/SyntaxHighlighter/)
                             This gets added to the top of every Javadoc html page.   -->
                             <top><![CDATA[
                                 <script src="{@docRoot}/syntaxhighlighter/shCore.js" type="text/javascript"></script>

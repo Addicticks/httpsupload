@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.addicticks.net</groupId>
+    <artifactId>httpsupload</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Set the format of the Maven build timestamp explicitly so that when
+        we save it in the JAR's manifest then we know exactly what format it has -->
+        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
+    <name>HTTPS Upload library</name>
+    
+    <description>
+        A simple, small, no-nonsense library that allows to upload files
+        to a remote server that accepts multipart/form-data encoded (RFC2388)
+        uploads. The library has no external dependencies.
+    </description>
+
+
+
+    <organization>
+        <name>Addicticks</name>
+        <url>http://www.addicticks.com</url>
+    </organization>
+    
+    <licenses>        
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    
+    <scm>
+        <connection>scm:git:github.com:addicticks/httpsupload.git</connection>
+        <developerConnection>scm:git:github.com:addicticks/httpsupload.git</developerConnection>
+        <url>github.com:addicticks/httpsupload.git</url>
+    </scm>    
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        
+                        <!-- Do not include the POM in the jar. There's no need to include
+                        the POM in the jar  -->
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                        <manifestEntries>                            
+                            <!-- Add some useful properties that we can pick up programmatically -->
+                            <Project-Version>${project.version}</Project-Version>
+                            <Build-Date>${maven.build.timestamp}</Build-Date>
+                            <Build-Date-Format>${maven.build.timestamp.format}</Build-Date-Format>
+                            
+                            <!-- Override the default 'Built-By' which would otherwise be the OS name user -->
+                            <Built-By>Addicticks</Built-By>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+            
+    </build>
+    
+    <!-- For JDK8 the standard Javadoc produced is just plain ugly and not very
+    readable. So we use our own stylesheet instead which fixes the appearance to
+    be more of a JDK7 look-a-like. We also add the ability to do syntax highlighting
+    of java code snippets inside Javadoc. 
+    Note that this happens only if we are building under JDK8.         -->
+    <profiles>
+        <profile>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.3</version>
+                        <configuration>
+                            <resourcesArtifacts>
+                                <resourceArtifact>
+                                    <groupId>com.addicticks.javadoc</groupId>
+                                    <artifactId>customization</artifactId>
+                                    <version>1.0</version>
+                                </resourceArtifact>
+                            </resourcesArtifacts>
+                            
+                            <!-- Add SyntaxHighlighter feature.
+                            This gets added to the top of every Javadoc html page.   -->
+                            <top><![CDATA[
+                                <script src="{@docRoot}/syntaxhighlighter/shCore.js" type="text/javascript"></script>
+                                <script src="{@docRoot}/syntaxhighlighter/shBrushJava.js" type="text/javascript"></script>
+                                <link rel="stylesheet" type="text/css" href="{@docRoot}/syntaxhighlighter/shCore.css" title="Style">
+                                <link rel="stylesheet" type="text/css" href="{@docRoot}/syntaxhighlighter/shThemeDefault.css" title="Style">
+                                ]]>
+                            </top>
+                            
+                            <!-- Activate and customize SyntaxHighlighter feature.
+                            This gets added to the bottom of every Javadoc html page.  -->
+                            <footer><![CDATA[
+                                <script type="text/javascript">
+                                    SyntaxHighlighter.defaults["auto-links"] = false;
+                                    SyntaxHighlighter.defaults["tab-size"] = 2;
+                                    SyntaxHighlighter.defaults["toolbar"] = false;
+                                    SyntaxHighlighter.all();
+                                </script>
+                                ]]>
+                            </footer>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
+

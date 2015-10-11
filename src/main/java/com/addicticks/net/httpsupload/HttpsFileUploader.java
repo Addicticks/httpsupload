@@ -1,0 +1,657 @@
+/*
+ * Copyright Addicticks 2015.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.addicticks.net.httpsupload;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
+
+/**
+ * Uploading file(s) to a HTTP/HTTPS site using POST method and the
+ * {@code multipart/form-data} encoding (RFC2388).
+ * .<p>
+ * <br>
+ * The class has the following features:<br>
+ * <ul>
+ * <li>Allows uploading multiple files in one operation (if supported by the endpoint).</li>
+ * </ul><br>
+ * <ul>
+ * <li>Has no external dependencies, e.g. no Apache HttpClient.</li>
+ * </ul><br>
+ * <ul>
+ * <li>Certificate validation can be turned off. This is important when working
+ * against a site that uses a self-signed certificate.</li>
+ * </ul><br>
+ * <ul>
+ * <li>Support for endpoints that require authentication (only authentication type "Basic"
+ * is currently supported).</li>
+ * </ul><br>
+ * <ul>
+ * <li>Java's <code>HttpURLConnection</code>/<code>HttpsURLConnection</code>
+ * will normally do internal buffering of the request being sent. If the file
+ * being uploaded is large this means that Java will try to buffer all of the
+ * file in memory. This class avoids this by streaming the file contents to the
+ * server and therefore allows very large files to be uploaded without causing an
+ * out-of-memory error in the JVM.</li>
+ * </ul><br>
+ * <ul>
+ * <li>Support for explicitly setting network proxy. This is implemented <i>without</i>
+ * the use of global system properties, so can be used without affecting other
+ * classes in the same JVM.</li>
+ * </ul><br>
+ * <ul>
+ * <li>File upload progress can be tracked for every 1% progress. This allows a
+ * UI to let the user know how the upload is progressing.</li>
+ * </ul><br>
+ * <br>
+ * <br>
+ * EXAMPLE:<br>
+ * <br>
+ * <pre class="brush:java">
+ * // Configure the connection        
+ * HttpsFileUploaderConfig uploaderConfig = new HttpsFileUploaderConfig(endpointURL);
+ * uploaderConfig.setEndpointUsername(endpointUsername);
+ * uploaderConfig.setEndpointPassword(endpointPassword);
+ * uploaderConfig.setValidateCertificates(false);
+ * uploaderConfig.setProxyAddress(proxyAddress);
+ * uploaderConfig.setProxyPort(proxyPort);
+ * 
+ * // Do the upload.
+ * // A single file is uploaded along with a single text field.
+ * result = HttpsFileUploader.uploadFile(
+ *     uploaderConfig, 
+ *     Collections.singletonMap("file1", new HttpsFileUploader.UploadFileSpec(new File("hugefile.zip"))), 
+ *     Collections.singletonMap("email", "johnny@company.com"), 
+ *     this);
+ * 
+ * // Evaluate the result.
+ * if (result.isError()) {
+ *     System.out.println("Ok, upload successful");
+ * } else {
+ *     System.out.println("error uploading, http code :" + result.getHttpStatusCode());
+ *     System.out.println("Message from server : " + result.getResponseTextNoHtml());
+ * }
+ * 
+ * </pre>
+ * 
+ * @author Addicticks 
+ */
+public class HttpsFileUploader  {
+
+
+    private static final Logger LOGGER = Logger.getLogger(HttpsFileUploader.class.getName());
+    
+    // Sending POST multi-part data requires literals
+    private static final String CRLF = "\r\n";
+    private static final String TWOHYPHENS = "--";
+    private static final String MULTIPART_BOUNDARY = "*****X99611299X******";  // random boundary
+    
+    
+   private HttpsFileUploader() {
+   }
+          
+    
+
+ 
+    
+    
+
+    /**
+     * Uploads a file (or files) using POST method. The file is never cached in memory so 
+     * very big files can be uploaded without causing a memory problem.
+     * 
+     * <p>Multiple files can be uploaded in the same method call as long as each file has
+     * its own destination field on the server, e.g. "file1", "file2", etc. 
+     * Upload of multiple files into the same field is not supported. (this is anyway a rather
+     * recent feature for example IE did not support it until v10).
+     * 
+     * <p>Some endpoints also allow uploading of other information than just the file(s). This is 
+     * supported via the <code>otherFields</code> argument.<br>
+     * <br>
+     * <br>
+     * <br>
+     * See general description {@link HttpsFileUploader here}.<br>
+     * <br>
+     * 
+     * @param config configuration for the connection.
+     * @param uploadFiles the files to upload. The key of the map is the form field name into which the 
+     * file is uploaded. Quite often the server side only allows a single file
+     * to be uploaded at a time. In this case this map only has a single element but then it
+     * may be easier to use the 
+     * {@link #uploadFile(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.io.File)} method.
+     * Most often the form field name is {@code file} or if multiple files are accepted: {@code file1}, {@code file2}, {@code ...} and so on.
+     * @param otherFields Other fields to be POST'ed into the form besides the file(s). Some forms allow
+     * certain other fields, such as the name or email address of the uploader. The key of the map must
+     * be the form field name and the value is the plain text value of the field. The {@code null} value 
+     * is acceptable.
+     * @param progressNotifier Optional callback notifier. This will give a callback for each percent of the file
+     * that has been uploaded. Use <code>null</code> if no progress notification is required.
+     * @return result of the upload operation
+     * @throws IOException if the endpoint cannot be reached or if input file(s) cannot be
+     * read.
+     */
+    public static HttpsFileUploaderResult uploadFile(
+            HttpsFileUploaderConfig config,
+            Map<String,UploadFileSpec> uploadFiles, 
+            Map<String,String> otherFields,
+            FileUploadProgress progressNotifier) throws IOException {
+        
+        // Setup the connection
+        HttpURLConnection httpsUrlConnection = setup(config);
+        
+        long totalBytes = 0;
+        ArrayList<UploadFile> uploadFilesX = new ArrayList();
+        ArrayList<UploadOtherField> uploadFieldsX = new ArrayList();
+        String globalFooter =  TWOHYPHENS + MULTIPART_BOUNDARY + TWOHYPHENS + CRLF;
+
+
+        // Arrange the files to be uploaded into a new data structure
+        // which includes MIME multi-part headers and footers. The only reason
+        // for doing it this way is to be able to calculate the size of all
+        // components BEFORE actually sending any data.
+        for (String uploadFormFieldName : uploadFiles.keySet()) {
+            String mimeType = uploadFiles.get(uploadFormFieldName).getMimeType();
+            String hintFilename = uploadFiles.get(uploadFormFieldName).getHintFilename();
+            ArrayList<String> mpHeaders = new ArrayList();
+            ArrayList<String> mpFooters = new ArrayList();
+
+            // Multi-part headers
+            mpHeaders.add(TWOHYPHENS + MULTIPART_BOUNDARY + CRLF);
+            mpHeaders.add("Content-Disposition: form-data; name=\"" + uploadFormFieldName + "\";filename=\"" + hintFilename + "\"" + CRLF);
+            mpHeaders.add("Content-Type: " + mimeType + CRLF);
+            mpHeaders.add(CRLF);
+
+            // Multi-part footers
+            mpFooters.add(CRLF);
+            
+            UploadFile uploadFile = new UploadFile(
+                    uploadFormFieldName,
+                    uploadFiles.get(uploadFormFieldName),
+                    mpHeaders,
+                    mpFooters
+                    );
+            uploadFilesX.add(uploadFile);
+            totalBytes = totalBytes + uploadFile.getTotalByteSize();
+        }
+        
+        // Arrange the fields to be uploaded into a new data structure
+        // which includes MIME multi-part headers and footers. The only reason
+        // for doing it this way is to be able to calculate the size of all
+        // components BEFORE actually sending any data.
+        if (otherFields != null) {
+            for (String otherField : otherFields.keySet()) {
+                ArrayList<String> mpHeaders = new ArrayList();
+                ArrayList<String> mpFooters = new ArrayList();
+
+                // Multi-part headers
+                mpHeaders.add(TWOHYPHENS + MULTIPART_BOUNDARY + CRLF);
+                mpHeaders.add("Content-Disposition: form-data; name=\"" + otherField + "\"" + CRLF);
+                //mpHeaders.add("Content-Type: text/plain" + CRLF);
+                mpHeaders.add(CRLF);
+
+                // Multi-part footers
+                mpFooters.add(CRLF);
+
+                UploadOtherField uploadOtherField = new UploadOtherField(
+                        otherField,
+                        otherFields.get(otherField),
+                        mpHeaders,
+                        mpFooters);
+
+                uploadFieldsX.add(uploadOtherField);
+                totalBytes = totalBytes + uploadOtherField.getTotalByteSize();
+            }
+        }
+
+        totalBytes = totalBytes + globalFooter.length();
+        
+        // Set the total length. This is the length of the
+        // multi-part header + the length of the field content itself +
+        // the length of the multi-part footer. (for all fields)
+        // If we did NOT use this method then Java would cache the entire contents of the POST 
+        // data in memory because it has to try to figure out what to set the
+        // Content-Length HTTP header field to before actually sending the data.
+        // For large files such behaviour would most likely cause memory
+        // problems.
+        httpsUrlConnection.setFixedLengthStreamingMode(totalBytes);
+        
+        long startTime = System.currentTimeMillis();
+        
+        // Open the data stream. This is where the connection is physically 
+        // established.
+        try (DataOutputStream out = new DataOutputStream(httpsUrlConnection.getOutputStream())) {
+            
+            // Calculate the total number of file bytes that will be sent
+            // (accross all files)
+            long totalFileBytes=0;
+            for (UploadFile uploadFile : uploadFilesX) {
+                totalFileBytes += uploadFile.getUploadFileSpec().getFile().length();
+            }
+            if (progressNotifier != null) {
+                progressNotifier.uploadStart(uploadFilesX.size(), totalFileBytes);
+            }
+            
+            //  *********************
+            // SENDING  FILES
+            //  *********************
+            for (UploadFile uploadFile : uploadFilesX) {
+                
+                
+                // Write multi-part headers to output stream
+                for (String str : uploadFile.getMpHeaders()) {
+                    out.writeBytes(str);
+                }
+                
+                // Write file
+                try (FileInputStream fis = new FileInputStream(uploadFile.getUploadFileSpec().getFile())) {
+                    byte[] buffer = new byte[8192];
+                    int bytes_read;
+                    int total_written=0;
+                    int filesize = (int) uploadFile.getUploadFileSpec().getFile().length();
+                    int notif_size = filesize/100; // how often, in bytes, do we notify ?
+                    long last_notif = 0;
+                    int prevPct = -1;
+                    
+                    // Make sure we start at 0%
+                    prevPct = notifyProgress(
+                            progressNotifier,
+                            uploadFile.getUploadFileSpec().getFile(),
+                            0,
+                            filesize,
+                            prevPct);
+                    while ((bytes_read = fis.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytes_read);
+                        total_written = total_written + bytes_read;
+                        if ((total_written - last_notif) >= notif_size) {
+                            // notify about progress
+                            prevPct = notifyProgress(
+                                    progressNotifier,
+                                    uploadFile.getUploadFileSpec().getFile(),
+                                    total_written,
+                                    filesize,
+                                    prevPct);
+                            last_notif = total_written;
+                        }
+                    }
+                    // Make sure we end at 100%
+                    notifyProgress(
+                            progressNotifier,
+                            uploadFile.getUploadFileSpec().getFile(),
+                            filesize,
+                            filesize,
+                            prevPct);
+                }
+                
+
+                // Write multi-part footers to output stream
+                for (String str : uploadFile.getMpFooters()) {
+                    out.writeBytes(str);
+                }
+                out.flush();
+
+            }
+            
+            
+            //  *********************
+            // SENDING OTHER FIELDS
+            //  *********************
+
+            for (UploadOtherField uploadOtherField : uploadFieldsX) {
+
+                // Write multi-part headers to output stream
+                for (String str : uploadOtherField.getMpHeaders()) {
+                    out.writeBytes(str);
+                }
+
+                out.writeBytes(uploadOtherField.getFieldValue());
+
+                // Write multi-part footers to output stream
+                for (String str : uploadOtherField.getMpFooters()) {
+                    out.writeBytes(str);
+                }
+            }
+            
+            //  *********************
+            // SENDING GLOBAL FOOTER
+            //  *********************
+            out.writeBytes(globalFooter);
+
+            // End notification
+            if (progressNotifier != null) {
+                progressNotifier.uploadEnd(totalFileBytes, System.currentTimeMillis() - startTime);
+            }
+        }
+        
+        
+        
+        
+        
+        int httpStatus = httpsUrlConnection.getResponseCode();
+        
+        StringBuilder stringBuilder = null;
+        if (httpStatus != HttpsURLConnection.HTTP_UNAUTHORIZED) {
+            try (BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(new BufferedInputStream(httpsUrlConnection.getInputStream())))) {
+                String line;
+                stringBuilder = new StringBuilder();
+                while ((line = responseStreamReader.readLine()) != null) {
+                    stringBuilder.append(line).append(System.lineSeparator());
+                }
+            } catch (IOException ex) {
+                // Read the Err stream
+                try (BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(new BufferedInputStream(httpsUrlConnection.getErrorStream())))) {
+                    String line;
+                    stringBuilder = new StringBuilder();
+                    while ((line = responseStreamReader.readLine()) != null) {
+                        stringBuilder.append(line).append(System.lineSeparator());
+                    }
+                }
+            }
+        }
+
+        String responseText = null;
+        if (stringBuilder != null) {
+            responseText = stringBuilder.toString();
+        }
+        
+
+        // We could potentially call disconnect() on the httpsUrlConnection
+        // but Java will pool HTTP connections behind our back anyway and keep
+        // them alive for typically 5 seconds. Thus disconnect() should only
+        // be called if we do not want to connect to the same server again during
+        // the next x seconds. Since we do not know this it is more efficient to 
+        // let Java handle the connection closedown.
+        
+        return new HttpsFileUploaderResult(httpStatus, responseText);
+    }
+    
+    
+    
+    /**
+     * Uploads a file. This is a convenience method of the more general
+     * {@link #uploadFile(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) uploadFile()}.
+     * The method only uploads a single file and expects the destination field for
+     * the file on the server to be named "file".
+     *
+     * @param config configuration for the connection.
+     * @param uploadFile file to upload
+     * @return result of the upload operation
+
+     * @throws IOException if the endpoint cannot be reached or if input file cannot be
+     * read.
+     */
+    public static HttpsFileUploaderResult uploadFile(
+            HttpsFileUploaderConfig config,
+            File uploadFile) throws IOException {
+        
+        Map<String, UploadFileSpec> map = new HashMap<>();
+        map.put("file", new UploadFileSpec(uploadFile));
+        return uploadFile(config, map , null, null);
+    }
+    
+    
+
+    /**
+     * Configures the HTTP/HTTPS connection.
+     * @param config
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException 
+     */
+    private static HttpURLConnection setup(HttpsFileUploaderConfig config) throws MalformedURLException, IOException {
+        HttpURLConnection httpUrlConnection;
+        boolean isHttps = false;
+        URL url = config.getURL();
+        if (url.getProtocol().equalsIgnoreCase("https")) {
+            isHttps = true;
+        }
+
+        if (config.usesProxy()) {
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.getProxyAddress(), config.getProxyPort()));
+            httpUrlConnection = (HttpURLConnection) url.openConnection(proxy);
+        } else {
+            httpUrlConnection = (HttpURLConnection) url.openConnection();
+        }
+        
+        
+        if (!config.isValidateCertificates() && isHttps) {
+            SSLUtils.setNoValidate(((HttpsURLConnection) httpUrlConnection), config.getAcceptedIssuers());
+        }
+        
+        
+        httpUrlConnection.setUseCaches(false);  // do not use connection caches
+        httpUrlConnection.setDoOutput(true);
+
+        // Set timeouts
+        httpUrlConnection.setConnectTimeout(config.getConnectTimeoutMs());
+        httpUrlConnection.setReadTimeout(config.getReadTimeoutMs());
+
+        httpUrlConnection.setRequestMethod("POST");
+        httpUrlConnection.setRequestProperty("Connection", "Keep-Alive");
+        httpUrlConnection.setRequestProperty("Cache-Control", "no-cache");
+        httpUrlConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + MULTIPART_BOUNDARY);
+        
+        if (config.endpointRequiresAuthentication()) {
+            String authString = config.getEndpointUsername() + ":" + config.getEndpointPassword();
+
+            // The only public Base64 encoder that exist in Java 7 and before is from the
+            // JAXB package so we will (mis)use that here for Base64 encoding.        
+            // Note: Java 8 will finally have a Base64 class in the Util package.
+            String authStringEnc = javax.xml.bind.DatatypeConverter.printBase64Binary(authString.getBytes());
+            httpUrlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
+        }
+        
+        return httpUrlConnection;
+    }
+    
+    
+    /**
+     * Utility function to calculate the total number of bytes in 
+     * an array of Strings. This method assumes that the strings
+     * only contain single-byte characters (i.e. 1 char = 1 byte).
+     * @param arr
+     * @return total number of bytes
+     */
+    private static int getBytesSize(ArrayList<String> arr) {
+        int count=0;
+        
+        for (String str : arr) {
+            count = count + str.length();
+        }
+        return count;
+    }
+    
+    /**
+     * Utility method
+     */
+    private static int notifyProgress(FileUploadProgress notifier, File file, int bytesWritten, int bytesTotal, int prevPct) {
+        if (notifier != null) {
+            int pct = (int) ((bytesWritten * 100L) / bytesTotal);
+            
+            // We don't want to inform about the same pct twice
+            if (prevPct != pct) {
+                notifier.uploadProgress(file, bytesTotal, pct);
+                return pct;
+            }
+            return prevPct;
+        }
+        return prevPct;
+    }
+    
+    /**
+     * Specification for a file to be uploaded.
+     */
+    public static class UploadFileSpec {
+        private final File file;
+        private final String mimeType;
+        private final String hintFilename;
+
+        /**
+         * Constructs a file upload specification.
+         * 
+         * <p>
+         * <code>hintFilename</code> will be derived from <code>
+         * file</code> argument.
+         * <p>
+         * <code>mimeType</code> will be guessed from <code>
+         * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String)
+         * }.
+         *
+         * 
+         * @param file file to upload.
+         */
+        public UploadFileSpec(File file) {
+            this(file, file.getName(), URLConnection.guessContentTypeFromName(file.getAbsolutePath()) );
+        }
+        
+        /**
+         * Constructs a file upload specification.
+         * 
+         * <p>
+         * <code>hintFilename</code> will be derived from <code>
+         * file</code> argument.
+          * 
+         * 
+         * @param file file to upload.
+         * @param hintFilename hint given to the server about what filename to use for the file.
+         */
+        public UploadFileSpec(File file, String hintFilename) {
+            this(file, hintFilename, URLConnection.guessContentTypeFromName(file.getAbsolutePath()));
+        }
+        
+        /**
+         * Constructs a file upload specification.
+         * 
+         * @param file file to upload.
+         * @param hintFilename hint given to the server about what filename to use for the file.
+         * @param mimeType MIME type for the file, e.g. <code>application/zip</code>.
+         * See <a href="http://en.wikipedia.org/wiki/Internet_media_type">Wikipedia</a> 
+         * for more information.
+         */
+        public UploadFileSpec(File file, String hintFilename, String mimeType ) {
+            this.file = file;
+            this.mimeType = (mimeType == null) ? URLConnection.guessContentTypeFromName(file.getAbsolutePath()) : mimeType;
+            this.hintFilename = (hintFilename == null) ? file.getName() : hintFilename;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public String getHintFilename() {
+            return this.hintFilename;
+        }
+    }
+    
+    
+    /**
+     * Helper class. Only used internally.
+     */
+    private static class UploadFile  {
+        private final UploadFileSpec uploadFileSpec;
+        private final ArrayList<String> mpFooters;
+        private final ArrayList<String> mpHeaders;
+        private final String formFieldName;
+
+        public UploadFile(String formFieldName, UploadFileSpec uploadFileSpec, ArrayList<String> mpHeaders, ArrayList<String> mpFooters) {
+            this.uploadFileSpec = uploadFileSpec;
+            this.mpHeaders = mpHeaders;
+            this.mpFooters = mpFooters;
+            this.formFieldName = formFieldName;
+        }
+
+        public UploadFileSpec getUploadFileSpec() {
+            return uploadFileSpec;
+        }
+
+        public ArrayList<String> getMpFooters() {
+            return mpFooters;
+        }
+
+        public ArrayList<String> getMpHeaders() {
+            return mpHeaders;
+        }
+
+        public String getFormFieldName() {
+            return formFieldName;
+        }
+        
+        public long  getTotalByteSize() {
+            return HttpsFileUploader.getBytesSize(mpHeaders)  
+                    + uploadFileSpec.getFile().length()
+                    + HttpsFileUploader.getBytesSize(mpFooters) ;
+        }
+    }
+    
+
+    /**
+     * Helper class. Only used internally.
+     */
+    private static class UploadOtherField  {
+        private final ArrayList<String> mpFooters;
+        private final ArrayList<String> mpHeaders;
+        private final String formFieldName;
+        private final String fieldValue;
+
+        public UploadOtherField(String formFieldName, String fieldValue, ArrayList<String> mpHeaders, ArrayList<String> mpFooters) {
+            this.mpHeaders = mpHeaders;
+            this.mpFooters = mpFooters;
+            this.formFieldName = formFieldName;
+            this.fieldValue = (fieldValue == null) ? "" : fieldValue;
+        }
+
+        public ArrayList<String> getMpFooters() {
+            return mpFooters;
+        }
+
+        public ArrayList<String> getMpHeaders() {
+            return mpHeaders;
+        }
+
+        public String getFormFieldName() {
+            return formFieldName;
+        }
+
+        public String getFieldValue() {
+            return fieldValue;
+        }
+
+        public long  getTotalByteSize() {
+            return HttpsFileUploader.getBytesSize(mpHeaders)  
+                    + fieldValue.length()
+                    + HttpsFileUploader.getBytesSize(mpFooters) ;
+        }
+    }
+    
+}

@@ -86,7 +86,7 @@ import javax.net.ssl.HttpsURLConnection;
  * 
  * // Do the upload.
  * // A single file is uploaded along with a single text field.
- * result = HttpsFileUploader.uploadFile(
+ * result = HttpsFileUploader.upload(
  *     uploaderConfig, 
  *     Collections.singletonMap("file1", new HttpsFileUploader.UploadFileSpec(new File("hugefile.zip"))), 
  *     Collections.singletonMap("email", "johnny@company.com"), 
@@ -158,7 +158,7 @@ public class HttpsFileUploader  {
      * @throws IOException if the endpoint cannot be reached or if input file(s) cannot be
      * read.
      */
-    public static HttpsFileUploaderResult uploadFile(
+    public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
             Map<String,UploadFileSpec> uploadFiles, 
             Map<String,String> otherFields,
@@ -413,7 +413,7 @@ public class HttpsFileUploader  {
         
         Map<String, UploadFileSpec> map = new HashMap<>();
         map.put("file", new UploadFileSpec(uploadFile));
-        return uploadFile(config, map , null, null);
+        return upload(config, map , null, null);
     }
     
     

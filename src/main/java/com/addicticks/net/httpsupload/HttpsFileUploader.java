@@ -86,7 +86,7 @@ import javax.net.ssl.HttpsURLConnection;
  * 
  * // Do the upload.
  * // A single file is uploaded along with a single text field.
- * result = HttpsFileUploader.uploadFile(
+ * result = HttpsFileUploader.upload(
  *     uploaderConfig, 
  *     Collections.singletonMap("file1", new HttpsFileUploader.UploadFileSpec(new File("hugefile.zip"))), 
  *     Collections.singletonMap("email", "johnny@company.com"), 
@@ -146,7 +146,7 @@ public class HttpsFileUploader  {
      * file is uploaded. Quite often the server side only allows a single file
      * to be uploaded at a time. In this case this map only has a single element but then it
      * may be easier to use the 
-     * {@link #uploadFile(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.io.File)} method.
+     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.io.File)} method.
      * Most often the form field name is {@code file} or if multiple files are accepted: {@code file1}, {@code file2}, {@code ...} and so on.
      * @param otherFields Other fields to be POST'ed into the form besides the file(s). Some forms allow
      * certain other fields, such as the name or email address of the uploader. The key of the map must
@@ -158,7 +158,7 @@ public class HttpsFileUploader  {
      * @throws IOException if the endpoint cannot be reached or if input file(s) cannot be
      * read.
      */
-    public static HttpsFileUploaderResult uploadFile(
+    public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
             Map<String,UploadFileSpec> uploadFiles, 
             Map<String,String> otherFields,
@@ -396,7 +396,7 @@ public class HttpsFileUploader  {
     
     /**
      * Uploads a file. This is a convenience method of the more general
-     * {@link #uploadFile(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) uploadFile()}.
+     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) uploadFile()}.
      * The method only uploads a single file and expects the destination field for
      * the file on the server to be named "file".
      *
@@ -407,13 +407,13 @@ public class HttpsFileUploader  {
      * @throws IOException if the endpoint cannot be reached or if input file cannot be
      * read.
      */
-    public static HttpsFileUploaderResult uploadFile(
+    public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
             File uploadFile) throws IOException {
         
         Map<String, UploadFileSpec> map = new HashMap<>();
         map.put("file", new UploadFileSpec(uploadFile));
-        return uploadFile(config, map , null, null);
+        return upload(config, map , null, null);
     }
     
     

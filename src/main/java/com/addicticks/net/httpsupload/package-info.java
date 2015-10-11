@@ -19,7 +19,7 @@
  * Classes that support uploading a file (or files) to a remote server using
  * either HTTP or HTTPS.
  * 
- * <p>See {@link HttpsFileUploader} fore more information.
+ * <p>See {@link com.addicticks.net.httpsupload.HttpsFileUploader HttpsFileUploader} for more information.
  */
 package com.addicticks.net.httpsupload;
 

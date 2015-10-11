@@ -36,9 +36,9 @@
     </licenses>
     
     <scm>
-        <connection>scm:git:github.com:addicticks/httpsupload.git</connection>
-        <developerConnection>scm:git:github.com:addicticks/httpsupload.git</developerConnection>
-        <url>github.com:addicticks/httpsupload.git</url>
+        <connection>scm:git:https://github.com/Addicticks/httpsupload.git</connection>
+        <developerConnection>scm:git:https://github.com/Addicticks/httpsupload.git</developerConnection>
+        <url>https://github.com/Addicticks/httpsupload.git</url>
     </scm>    
     
     <build>
@@ -65,6 +65,29 @@
                     </archive>
                 </configuration>
             </plugin>
+
+            <!--  Publish the Javadocs to Github static pages.
+                  Execute this to generate and publish javadocs:
+                  mvn clean javadoc:javadoc scm-publish:publish-scm
+                  
+                  Unfortunately, and ugly, currently the maven-scm-publish-plugin
+                  cannot use an embedded git client, which means a git client
+                  must be available in PATH.
+                                                                       -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-publish-plugin</artifactId>
+                <version>1.1</version>
+                <configuration>
+                    <checkoutDirectory>${project.build.directory}/scmpublish</checkoutDirectory>
+                    <checkinComment>Publishing javadoc for ${project.artifactId}:${project.version}</checkinComment>
+                    <content>${project.reporting.outputDirectory}/apidocs</content>
+                    <skipDeletedFiles>true</skipDeletedFiles>
+                    <pubScmUrl>scm:git:https://github.com/Addicticks/httpsupload.git</pubScmUrl>
+                    <scmBranch>gh-pages</scmBranch> 
+                </configuration>
+            </plugin>
+
         </plugins>
             
     </build>
@@ -93,7 +116,8 @@
                                     <version>1.0</version>
                                 </resourceArtifact>
                             </resourcesArtifacts>
-                            
+                            <header>Version ${project.version}</header>
+                            <doctitle>bla bla bla </doctitle>
                             <!-- Add SyntaxHighlighter feature.
                             This gets added to the top of every Javadoc html page.   -->
                             <top><![CDATA[

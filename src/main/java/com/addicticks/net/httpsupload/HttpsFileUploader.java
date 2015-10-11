@@ -135,10 +135,12 @@ public class HttpsFileUploader  {
      * 
      * <p>Some endpoints also allow uploading of other information than just the file(s). This is 
      * supported via the <code>otherFields</code> argument.<br>
+     * 
+     * <p>This is a blocking call. You may want to spawn it off into its own thread.<br>
      * <br>
      * <br>
      * <br>
-     * See general description {@link HttpsFileUploader here}.<br>
+     * See general description and example {@link HttpsFileUploader here}.<br>
      * <br>
      * 
      * @param config configuration for the connection.

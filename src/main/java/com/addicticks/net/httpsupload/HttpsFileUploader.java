@@ -128,6 +128,8 @@ public class HttpsFileUploader  {
      * Uploads a file (or files) using POST method. The file is never cached in memory so 
      * very big files can be uploaded without causing a memory problem.
      * 
+     * <p>After the method returns the result should be examined for errors.
+     * 
      * <p>Multiple files can be uploaded in the same method call as long as each file has
      * its own destination field on the server, e.g. "file1", "file2", etc. 
      * Upload of multiple files into the same field is not supported. (this is anyway a rather
@@ -399,8 +401,8 @@ public class HttpsFileUploader  {
     /**
      * Uploads a file. This is a convenience method of the more general
      * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) upload(...)} method.
-     * The method only uploads a single file and expects the destination field for
-     * the file on the server to be named "file".
+     * This method only uploads a single file and expects the destination field for
+     * the file on the server to be named {@code "file"}.
      *
      * @param config configuration for the connection.
      * @param uploadFile file to upload

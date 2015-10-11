@@ -18,7 +18,8 @@ package com.addicticks.net.httpsupload;
 import java.net.HttpURLConnection;
 
 /**
- * Enclosing class for the result of a file upload.
+ * Enclosing class for the result of a file upload operation.
+ * 
  * @author Addicticks 
  */
 public class HttpsFileUploaderResult {
@@ -33,6 +34,8 @@ public class HttpsFileUploaderResult {
     /**
      * Gets the HTTP response status code. For a successful upload this
      * should be equal to {@link java.net.HttpURLConnection#HTTP_OK}.
+     * 
+     * @see #isError() 
      * @return status code
      */
     public int getHttpStatusCode() {

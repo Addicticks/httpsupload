@@ -105,7 +105,7 @@
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
+                    <releaseProfiles>release-to-central</releaseProfiles>
                     <goals>deploy</goals>
                 </configuration>
             </plugin>

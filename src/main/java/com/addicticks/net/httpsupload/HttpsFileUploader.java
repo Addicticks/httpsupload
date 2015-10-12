@@ -93,10 +93,10 @@ import javax.net.ssl.HttpsURLConnection;
  *     this);
  * 
  * // Evaluate the result.
- * if (result.isError()) {
- *     System.out.println("Ok, upload successful");
+ * if (!result.isError()) {
+ *     System.out.println("OK, upload successful");
  * } else {
- *     System.out.println("error uploading, http code :" + result.getHttpStatusCode());
+ *     System.out.println("Error uploading, http code :" + result.getHttpStatusCode());
  *     System.out.println("Message from server : " + result.getResponseTextNoHtml());
  * }
  * 

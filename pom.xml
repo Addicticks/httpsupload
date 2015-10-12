@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.addicticks.oss</groupId>
     <artifactId>httpsupload</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,6 +14,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
     <name>HTTPS Upload library</name>
+    <url>https://github.com/Addicticks/httpsupload</url>
     
     <description>
         A simple, small, no-nonsense library that allows to upload files
@@ -21,6 +22,13 @@
         uploads. The library has no external dependencies.
     </description>
 
+    <developers>
+        <developer>
+            <name>Addama Gabor</name>
+            <organization>Addicticks</organization>
+            <organizationUrl>http://www.addicticks.com</organizationUrl>
+        </developer>
+    </developers>
 
 
     <organization>
@@ -41,6 +49,15 @@
         <url>https://github.com/Addicticks/httpsupload.git</url>
     </scm>    
     
+    
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>    
+    
+    
     <build>
         <plugins>
             <plugin>
@@ -50,9 +67,6 @@
                 <configuration>
                     <archive>
                         
-                        <!-- Do not include the POM in the jar. There's no need to include
-                        the POM in the jar  -->
-                        <addMavenDescriptor>false</addMavenDescriptor>
                         <manifestEntries>                            
                             <!-- Add some useful properties that we can pick up programmatically -->
                             <Project-Version>${project.version}</Project-Version>
@@ -67,7 +81,7 @@
             </plugin>
 
             <!--  Publish the Javadocs to Github static pages.
-                  Execute this to generate and publish javadocs:
+                  Execute this command to generate and publish javadocs:
                   mvn clean javadoc:javadoc scm-publish:publish-scm
                   
                   Unfortunately, and ugly, currently the maven-scm-publish-plugin
@@ -88,19 +102,57 @@
                 </configuration>
             </plugin>
 
+
+
+            <!--   Required for publishing to Maven Central  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
         </plugins>
             
     </build>
     
-    <!-- 
-    For JDK8 the standard Javadoc produced is just plain ugly and not very
-    readable. So we use our own stylesheet instead which fixes the appearance to
-    be more of a JDK7 look-a-like. We also add the ability to do syntax highlighting
-    of java code snippets inside Javadoc. Note that this happens only if we are 
-    building under JDK8.         
-    Note that the Addicticks Javadoc stylesheet customizations are not
-    publicly available.                                                             -->
     <profiles>
+        
+        <profile> 
+            <id>release-to-central</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        
+        <!-- 
+        For JDK8 the standard Javadoc produced is just plain ugly and not very
+        readable. So we use our own stylesheet instead which fixes the appearance to
+        be more of a JDK7 look-a-like. We also add the ability to do syntax highlighting
+        of java code snippets inside Javadoc. Note that this happens only if we are 
+        building under JDK8.         
+        Note that the Addicticks Javadoc stylesheet customizations are not
+        publicly available.                                                             -->
         <profile>
             <activation>
                 <jdk>1.8</jdk>

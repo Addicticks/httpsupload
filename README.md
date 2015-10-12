@@ -1,7 +1,7 @@
 # HTTP/HTTPS Upload library
 
 Simple and minimalist Java library which allows to upload one or several files 
-to a remote server which accepts file uploads using HTTP POST encoded using
+to a remote server which accepts file uploads using HTTP POST and encoded using
 `multipart/form-data` (RFC2388).
 
 The library is entirely based on JDK and has no external dependencies.
@@ -42,7 +42,12 @@ This allows an UI to let the user know how the upload is progressing.
 
 ### Usage
 
-Simply call static method `HttpsFileUploader.upload()` method. That's it.
+
+1. Invoke static method `HttpsFileUploader.upload()` method.
+2. Check returned value from method
+
+That's it.
+
 See [javadoc](http://addicticks.github.io/httpsupload/) for more information.
 
 

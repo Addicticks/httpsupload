@@ -5,14 +5,6 @@
     <artifactId>httpsupload</artifactId>
     <version>0.9.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Set the format of the Maven build timestamp explicitly so that when
-        we save it in the JAR's manifest then we know exactly what format it has -->
-        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-    </properties>
     <name>HTTPS Upload library</name>
     <url>https://github.com/Addicticks/httpsupload</url>
     
@@ -203,5 +195,13 @@
         </profile>
     </profiles>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Set the format of the Maven build timestamp explicitly so that when
+        we save it in the JAR's manifest then we know exactly what format it has -->
+        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
 </project>
 

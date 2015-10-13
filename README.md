@@ -22,7 +22,7 @@ The library is entirely based on JDK and has no external dependencies.
 
 * Java's `HttpURLConnection/HttpsURLConnection` will normally do internal buffering of the request being sent. 
 If the file being uploaded is large this means that Java will try to buffer all of the file in memory. 
-This class avoids this by streaming the file contents to the server and therefore 
+This class avoids this by streaming the file contents to the server and therefore allows
 infinitely large files to be uploaded without causing an out-of-memory error in the JVM.
 
 * Support for explicitly setting network proxy. This is implemented without 
@@ -44,11 +44,17 @@ This allows an UI to let the user know how the upload is progressing.
 
 
 1. Invoke static method `HttpsFileUploader.upload()` method.
-2. Check returned value from method
+1. Check the method's return value
 
 That's it.
 
 See [javadoc](http://addicticks.github.io/httpsupload/) for more information.
+The `HttpsFileUploader` class has a code example in the javadoc.
+
+
+### Requirements
+
+Java 7 or later.
 
 
 ### License

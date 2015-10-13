@@ -14,15 +14,6 @@
         uploads. The library has no external dependencies.
     </description>
 
-    <developers>
-        <developer>
-            <name>Addama Gabor</name>
-            <organization>Addicticks</organization>
-            <organizationUrl>http://www.addicticks.com</organizationUrl>
-        </developer>
-    </developers>
-
-
     <organization>
         <name>Addicticks</name>
         <url>http://www.addicticks.com</url>
@@ -40,7 +31,7 @@
         <developerConnection>scm:git:https://github.com/Addicticks/httpsupload.git</developerConnection>
         <url>https://github.com/Addicticks/httpsupload.git</url>
       <tag>HEAD</tag>
-  </scm>    
+    </scm>    
     
     
     <distributionManagement>

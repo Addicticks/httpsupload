@@ -31,6 +31,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
@@ -246,6 +247,7 @@ public class HttpsFileUploader  {
         // For large files such behaviour would most likely cause memory
         // problems.
         httpsUrlConnection.setFixedLengthStreamingMode(totalBytes);
+        
         
         long startTime = System.currentTimeMillis();
         
@@ -464,6 +466,17 @@ public class HttpsFileUploader  {
         httpUrlConnection.setRequestProperty("Connection", "Keep-Alive");
         httpUrlConnection.setRequestProperty("Cache-Control", "no-cache");
         httpUrlConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + MULTIPART_BOUNDARY);
+        
+        // Sets additional headers
+        if (config.getAdditionalHeaders() != null) {
+            for(Entry<String,String> e : config.getAdditionalHeaders().entrySet()) {
+                // We use the 'set' method here and not the 'add' method because
+                // it should be allowed for example for the user to override Java's default
+                // User-Agent value. 
+                httpUrlConnection.setRequestProperty(e.getKey(), e.getValue());
+            }
+        }
+        
         
         if (config.endpointRequiresAuthentication()) {
             String authString = config.getEndpointUsername() + ":" + config.getEndpointPassword();

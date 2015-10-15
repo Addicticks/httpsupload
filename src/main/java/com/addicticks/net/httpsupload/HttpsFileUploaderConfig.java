@@ -16,6 +16,9 @@
 package com.addicticks.net.httpsupload;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -26,6 +29,8 @@ import java.net.URL;
  */
 public class HttpsFileUploaderConfig {
     
+    private static final String[] RESTRICTED_HTTP_HEADERS = new String[]{"Connection","Cache-Control","Content-Type"};
+    
     private String endpointUsername=null;
     private String endpointPassword;
     private boolean validateCertificates=true;
@@ -33,6 +38,7 @@ public class HttpsFileUploaderConfig {
     private String proxyAddress=null;
     private int proxyPort=8080;
     private final URL url;
+    private Map<String,String> additionalHeaders;
     private int connectTimeoutMs = CONNECT_TIMEOUT_MS;
     private int readTimeoutMs = READ_TIMEOUT_MS;
     
@@ -281,6 +287,56 @@ public class HttpsFileUploaderConfig {
      */
     public void setAcceptedIssuers(String[] acceptedIssuers) {
         this.acceptedIssuers = acceptedIssuers;
+    }
+
+    
+    /**
+     * Gets the additional HTTP headers used on the upload POST request.
+     * 
+     * @see #setAdditionalHeaders(java.util.Map) 
+     * @return 
+     */
+    public Map<String,String> getAdditionalHeaders() {
+        return additionalHeaders;
+    }
+
+    
+    /**
+     * Sets additional overall HTTP headers to add to the upload POST request. There's 
+     * rarely a need to use this method.
+     * 
+     * <p>The following headers are automatically set:
+     * <pre>
+     *    "Connection"
+     *    "Cache-Control"
+     *    "Content-Type"
+     * </pre> and you must <i>never</i> set these here. 
+     * 
+     * <p>However you might want to use this method to 
+     * explicitly set e.g. {@code User-Agent} or non-standard headers that
+     * are required for your particular endpoint. For example by overriding
+     * {@code User-Agent} you can make the upload operation look to the 
+     * endpoint as if it comes from a browser.
+     * 
+     * @param additionalHeaders Map of HTTP request headers. The key is the header field
+     *    name and the value is the header field value.
+     */
+    public void setAdditionalHeaders(Map<String,String> additionalHeaders) {
+        
+        Map<String, String> newMap = new HashMap<>();
+        for (Entry<String,String> e : additionalHeaders.entrySet()) {
+            boolean found = false;
+            for(String restrictedHeaderField : RESTRICTED_HTTP_HEADERS) {
+                if (e.getKey().equalsIgnoreCase(restrictedHeaderField)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                newMap.put(e.getKey(), e.getValue());
+            }
+        }
+        this.additionalHeaders = newMap;
     }
     
     

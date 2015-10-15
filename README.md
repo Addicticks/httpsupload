@@ -91,7 +91,7 @@ The `HttpsFileUploader` class has a more elaborate code example in the javadoc.
 
 ### Download
 
-You can either download from [here](releases) or better yet get it from Maven Central:
+You can either download from [here](/releases) or better yet get it from Maven Central:
 
 ```xml
 <dependency>

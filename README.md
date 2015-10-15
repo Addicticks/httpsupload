@@ -67,8 +67,27 @@ Apache HttpClient.
 
 That's it.
 
+Here's a minimal example of the absolutely minimum scenario:
+
+```java
+HttpsFileUploaderConfig uploaderConfig = new HttpsFileUploaderConfig(endpointURL);
+
+// Do the upload.
+// A single file is uploaded with no progress notification
+result = HttpsFileUploader.upload(uploaderConfig, new File("/tmp/testfile.dat"));
+ 
+// Evaluate the result.
+if (!result.isError()) {
+    System.out.println("OK, upload successful");
+} else {
+    System.out.println("Error uploading, http code :" + result.getHttpStatusCode());
+    System.out.println("Message from server : " + result.getResponseTextNoHtml());
+}
+```
+
 See [javadoc](http://addicticks.github.io/httpsupload/) for more information.
-The `HttpsFileUploader` class has a code example in the javadoc.
+The `HttpsFileUploader` class has a more elaborate code example in the javadoc.
+
 
 
 ### Requirements

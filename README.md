@@ -89,6 +89,17 @@ See [javadoc](http://addicticks.github.io/httpsupload/) for more information.
 The `HttpsFileUploader` class has a more elaborate code example in the javadoc.
 
 
+### Download
+
+You can either download from [here](releases) or better yet get it from Maven Central:
+
+```xml
+<dependency>
+    <groupId>com.addicticks.oss</groupId>
+    <artifactId>httpsupload</artifactId>
+    <version>xxxxx</version>
+</dependency>
+```
 
 ### Requirements
 

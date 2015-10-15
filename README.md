@@ -14,7 +14,7 @@ The library is entirely based on JDK and has no external dependencies.
 
 * Supports HTTP or HTTPS.
 
-* Has no external dependencies, e.g. no Apache HttpClient.
+* Very small and has no external dependencies, e.g. no Apache HttpClient.
 
 * Certificate validation can be turned off. This is important when working against a site that uses a self-signed certificate.
 
@@ -33,6 +33,25 @@ in the same JVM.
 This allows an UI to let the user know how the upload is progressing.
 
 
+### Motivation
+
+We needed something small and without external dependencies.
+
+The alternative to this minimal library is probably the [Apache HttpClient](http://hc.apache.org/httpcomponents-client-ga/index.html).
+This is a much bigger library which comes in a around 1 MB including dependencies
+whereas our library is only 20 KB in size.
+
+The fact is that a lot of what Apache HttpClient does is no longer required with a fairly recent
+Java version. There was a time when Apache HttpClient was a necessity because the
+standard JDK was simply too weak in the area of HTTP. This has changed with releases
+Java 1.4, Java 5 and Java 6 all of which introduced new features in this area.
+
+This is not to say that Apache HttpClient isn't still superior to the standard
+JDK classes. It is!. It's just not enough to justify its use for a relatively simple
+use case as file upload is.
+
+If our library doesn't fit your requirements you should definitely look into
+Apache HttpClient.
 
 
 ### Javadoc
@@ -44,7 +63,7 @@ This allows an UI to let the user know how the upload is progressing.
 
 
 1. Invoke static method `HttpsFileUploader.upload()` method.
-1. Check the method's return value
+1. Check the method's return value.
 
 That's it.
 

@@ -38,7 +38,7 @@ This allows an UI to let the user know how the upload is progressing.
 We needed something small and without external dependencies.
 
 The alternative to this minimal library is probably the [Apache HttpClient](http://hc.apache.org/httpcomponents-client-ga/index.html).
-This is a much bigger library which comes in a around 1 MB including dependencies
+This is a much bigger library which comes in at around 1 MB including dependencies
 whereas our library is only 20 KB in size.
 
 The fact is that a lot of what Apache HttpClient does is no longer required with a fairly recent

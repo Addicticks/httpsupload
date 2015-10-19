@@ -29,7 +29,7 @@ import java.util.Map.Entry;
  */
 public class HttpsFileUploaderConfig {
     
-    private static final String[] RESTRICTED_HTTP_HEADERS = new String[]{"Connection","Cache-Control","Content-Type"};
+    private static final String[] RESTRICTED_HTTP_HEADERS = new String[]{"Connection","Cache-Control","Content-Type","Content-Length","Authorization"};
     
     private String endpointUsername=null;
     private String endpointPassword;
@@ -305,15 +305,18 @@ public class HttpsFileUploaderConfig {
      * Sets additional overall HTTP headers to add to the upload POST request. There's 
      * rarely a need to use this method.
      * 
-     * <p>The following headers are automatically set:
+     * <p>The following header fields are automatically set:
      * <pre>
      *    "Connection"
      *    "Cache-Control"
      *    "Content-Type"
-     * </pre> and you must <i>never</i> set these here. 
+     *    "Content-Length"
+     *    "Authorization"
+     * </pre> and you must <i>never</i> set these here. (if you do they will be
+     * ignored)
      * 
      * <p>However you might want to use this method to 
-     * explicitly set e.g. {@code User-Agent} or non-standard headers that
+     * explicitly set e.g. {@code User-Agent} or non-standard header fields that
      * are required for your particular endpoint. For example by overriding
      * {@code User-Agent} you can make the upload operation look to the 
      * endpoint as if it comes from a browser.

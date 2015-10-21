@@ -62,8 +62,19 @@ Apache HttpClient.
 [javadoc](http://addicticks.github.io/httpsupload/)
 
 
-### Usage
+### Download
 
+You can either download from [here](https://github.com/Addicticks/httpsupload/releases) or better yet get it from Maven Central:
+
+```xml
+<dependency>
+    <groupId>com.addicticks.oss</groupId>
+    <artifactId>httpsupload</artifactId>
+    <version>xxxxx</version>
+</dependency>
+```
+
+### Usage
 
 1. Invoke static method `HttpsFileUploader.upload()` method.
 1. Check the method's return value.
@@ -92,17 +103,48 @@ See [javadoc](http://addicticks.github.io/httpsupload/) for more information.
 The `HttpsFileUploader` class has a more elaborate code example in the javadoc.
 
 
-### Download
 
-You can either download from [here](https://github.com/Addicticks/httpsupload/releases) or better yet get it from Maven Central:
 
-```xml
-<dependency>
-    <groupId>com.addicticks.oss</groupId>
-    <artifactId>httpsupload</artifactId>
-    <version>xxxxx</version>
-</dependency>
+### Determining what the server endpoint accepts
+
+In order to use the plugin you'll need to know a little about what the endpoint
+you plan to upload to actually accepts in terms of field names.
+
+Most often the server will expose some kind of html form and the easiest way
+to figure out what field names are used is to peak at such a file. Suppose
+the endpoint's upload html file looks like this:
+
+```html
+<html lang="en">
+    <head>
+        <title>File Upload</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <form method="POST" action="upload" enctype="multipart/form-data" >
+            File: <input type="file" name="file" id="fff" /> <br/>
+            Destination: <input type="text" name="destination" value="/tmp"/>
+            </br>
+            <input type="submit" value="Upload" name="upload" id="upload" />
+        </form>
+    </body>
+</html>
 ```
+
+From this we can see the server accepts a single file to be uploaded into a field
+called `file`. In addition it also supports a plain text field called 
+`destination`.
+
+If you don't have such information available to you then there are other options:
+
+1. You can guess about those field names. Quite often a field of type `file`
+   often has a field name of ...tada ... `file`. If the endpoint accepts multiple
+   files then those names are very likely to be `file1`, `file2`, ... `fileN`.
+1. Ask the administrator of the endpoint for this information.
+1. Upload a file from your browser to the endpoint and use your browser's 
+   network inspector to see what is actually being sent.
+
+
 
 ### Requirements
 

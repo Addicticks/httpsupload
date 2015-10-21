@@ -107,7 +107,7 @@ The `HttpsFileUploader` class has a more elaborate code example in the javadoc.
 
 ### Determining what the server endpoint accepts
 
-In order to use the plugin you'll need to know a little about what the endpoint
+In order to use the library you'll need to know a little about what the endpoint
 you plan to upload to actually accepts in terms of field names.
 
 Most often the server will expose some kind of html form and the easiest way

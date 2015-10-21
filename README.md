@@ -32,7 +32,7 @@ infinitely large files to be uploaded without causing an out-of-memory error in 
 the use of global system properties, so can be used without affecting other classes 
 in the same JVM.
 
-* File upload progress can be tracked for every 1% progress. 
+* Upload progress can be tracked for every 1% progress. 
 This allows an UI to let the user know how the upload is progressing.
 
 

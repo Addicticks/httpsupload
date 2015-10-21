@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- *
+ * Utility methods.
  */
 public class Utils {
     
@@ -38,7 +38,7 @@ public class Utils {
      * <p>
      * Note that the method uses the abbreviations "KB", "MB" and "GB" to denote
      * 1024 bytes, 1024<sup>2</sup> bytes and 1024<sup>3</sup> bytes. Strictly 
-     * speaking this incorrect but this is what most operating systems do as well.
+     * speaking this is incorrect but this is what most operating systems do as well.
      * 
      * <p>
      * Rules are as follows:<br>
@@ -78,8 +78,8 @@ public class Utils {
     }
 
     /**
-     * Strips a string from HTML and replaces {@code <br>},{@code <p>},
-     * {@code <h1>}, {@code <h2>} and {@code <h3>} with new line. This produces
+     * Strips a string from HTML markup. Elements {@code <br>},{@code <p>}, {@code <h1>}, 
+     * {@code <h2>} and {@code <h3>} are replaced with with new line. This produces
      * a string which is readable as plain text.
      *
      * <p>
@@ -88,18 +88,18 @@ public class Utils {
      * tags. However, for all but the most complex use cases, the method will
      * probably work just fine.
      *
-     * @param inp
+     * @param str
      * @return
      */
-    public static String stripHtml(String inp) {
+    public static String stripHtml(String str) {
         boolean intag = false;
         boolean tagHasEnded = false;
         StringBuilder outp = new StringBuilder();
         StringBuilder tagName = new StringBuilder();
         boolean ignoreContents = false;
 
-        for (int i = 0; i < inp.length(); i++) {
-            char ch = inp.charAt(i);
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
             if (!intag && ch == '<') {
                 intag = true;
                 
@@ -118,7 +118,7 @@ public class Utils {
                     tagName.append(ch);
                 }
             }
-            if (intag && inp.charAt(i) == '>') {
+            if (intag && str.charAt(i) == '>') {
                 intag = false;
                 String tName = tagName.toString();
                 if (tName.equalsIgnoreCase("br")

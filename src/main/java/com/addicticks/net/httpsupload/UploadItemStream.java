@@ -32,7 +32,7 @@ public class UploadItemStream extends UploadItem {
      *
      * @param is data stream to upload
      * @param hintFilename hint given to the server about what filename to use
-     * for the file.
+     * for the uploaded data from {@code is}.
      * @param mimeType MIME type for the file, e.g.
      * <code>application/zip</code>. See
      * <a href="http://en.wikipedia.org/wiki/Internet_media_type">Wikipedia</a>

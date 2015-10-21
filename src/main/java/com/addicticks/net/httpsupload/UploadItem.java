@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
+ * Base class for an item to be uploaded.
+ * 
  * @author addicticks
  */
 public abstract class UploadItem {
@@ -33,15 +34,23 @@ public abstract class UploadItem {
         this.hintFilename = hintFilename;
     }
 
+    /**
+     * Gets the MIME type associated with this upload item.
+     * @return 
+     */
     public String getMimeType() {
         return mimeType;
     }
 
+    /**
+     * Gets the hint file name associated with this upload item.
+     * @return 
+     */
     public String getHintFilename() {
         return hintFilename;
     }
 
-    public abstract InputStream getInputStream() throws IOException;
+    protected abstract InputStream getInputStream() throws IOException;
     
     /**
      * Gets the byte size of the upload item or -1 if the size is unknown.

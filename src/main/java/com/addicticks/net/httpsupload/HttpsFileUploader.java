@@ -42,7 +42,7 @@ import javax.net.ssl.HttpsURLConnection;
  * <br>
  * The class has the following features:<br>
  * <ul>
- * <li>Allows uploading multiple files in one operation (if supported by the endpoint).</li>
+ * <li>Allows uploading multiple files (or streams) in one operation (if supported by the endpoint).</li>
  * </ul><br>
  * <ul>
  * <li>Has no external dependencies, e.g. no Apache HttpClient.</li>
@@ -70,7 +70,7 @@ import javax.net.ssl.HttpsURLConnection;
  * classes in the same JVM.</li>
  * </ul><br>
  * <ul>
- * <li>File upload progress can be tracked for every 1% progress. This allows a
+ * <li>Upload progress can be tracked for every 1% progress. This allows a
  * UI to let the user know how the upload is progressing.</li>
  * </ul><br>
  * <br>
@@ -109,7 +109,6 @@ import javax.net.ssl.HttpsURLConnection;
 public class HttpsFileUploader  {
 
 
-    private static final Logger LOGGER = Logger.getLogger(HttpsFileUploader.class.getName());
     
     private static final int CHUNK_SIZE_IN_BYTES = 8192;
     
@@ -130,7 +129,8 @@ public class HttpsFileUploader  {
 
     /**
      * Uploads a file (or files) using POST method. The file is never cached in memory so 
-     * very big files can be uploaded without causing a memory problem.
+     * very big files can be uploaded without causing a memory problem. Optionally allows
+     * upload directly from an {@code InputStream} rather than a physical file.
      * 
      * <p>After the method returns the result should be examined for errors.
      * 
@@ -151,7 +151,7 @@ public class HttpsFileUploader  {
      * 
      * @param config configuration for the connection.
      * @param uploadFiles the files or streams to upload. The key of the map is the form field name into which the 
-     * file is uploaded. Quite often the server side only allows a single file
+     * file/stream is uploaded. Quite often the server side only allows a single file
      * to be uploaded at a time. In this case this map only has a single element but then it
      * may be easier to use the 
      * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.io.File)} method.

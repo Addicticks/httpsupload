@@ -91,7 +91,7 @@ public class UploadItemFile extends UploadItem {
     }
 
     @Override
-    public InputStream getInputStream() throws FileNotFoundException {
+    protected InputStream getInputStream() throws FileNotFoundException {
         return new FileInputStream(file);
     }
 

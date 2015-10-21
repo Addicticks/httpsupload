@@ -19,16 +19,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,7 +61,8 @@ import javax.net.ssl.HttpsURLConnection;
  * being uploaded is large this means that Java will try to buffer all of the
  * file in memory. This class avoids this by streaming the file contents to the
  * server and therefore allows very large files to be uploaded without causing an
- * out-of-memory error in the JVM.</li>
+ * out-of-memory error in the JVM. If you are uploading from a stream rather than
+ * a file then this feature does not apply.</li>
  * </ul><br>
  * <ul>
  * <li>Support for explicitly setting network proxy. This is implemented <i>without</i>
@@ -89,7 +90,7 @@ import javax.net.ssl.HttpsURLConnection;
  * // A single file is uploaded along with a single text field.
  * result = HttpsFileUploader.upload(
  *     uploaderConfig, 
- *     Collections.singletonMap("file1", new HttpsFileUploader.UploadFileSpec(new File("hugefile.zip"))), 
+ *     Collections.singletonMap("file1", new HttpsFileUploader.UploadItemFile(new File("hugefile.zip"))), 
  *     Collections.singletonMap("email", "johnny@company.com"), 
  *     this);
  * 
@@ -109,6 +110,8 @@ public class HttpsFileUploader  {
 
 
     private static final Logger LOGGER = Logger.getLogger(HttpsFileUploader.class.getName());
+    
+    private static final int CHUNK_SIZE_IN_BYTES = 8192;
     
     // Sending POST multi-part data requires literals
     private static final String CRLF = "\r\n";
@@ -147,7 +150,7 @@ public class HttpsFileUploader  {
      * <br>
      * 
      * @param config configuration for the connection.
-     * @param uploadFiles the files to upload. The key of the map is the form field name into which the 
+     * @param uploadFiles the files or streams to upload. The key of the map is the form field name into which the 
      * file is uploaded. Quite often the server side only allows a single file
      * to be uploaded at a time. In this case this map only has a single element but then it
      * may be easier to use the 
@@ -165,9 +168,11 @@ public class HttpsFileUploader  {
      */
     public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
-            Map<String,UploadFileSpec> uploadFiles, 
+            Map<String,UploadItem> uploadFiles, 
             Map<String,String> otherFields,
-            FileUploadProgress progressNotifier) throws IOException {
+            UploadProgress progressNotifier) throws IOException {
+        
+        boolean byteSizeIsKnown = byteSizeIsKnown(uploadFiles.values());
         
         // Setup the connection
         HttpURLConnection httpsUrlConnection = setup(config);
@@ -246,7 +251,11 @@ public class HttpsFileUploader  {
         // Content-Length HTTP header field to before actually sending the data.
         // For large files such behaviour would most likely cause memory
         // problems.
-        httpsUrlConnection.setFixedLengthStreamingMode(totalBytes);
+        // We can only does this is we know the upload size. If we are uploading
+        // from a stream then we cannot do this because the size is not known in advance.
+        if (byteSizeIsKnown) {
+            httpsUrlConnection.setFixedLengthStreamingMode(totalBytes);
+        }
         
         
         long startTime = System.currentTimeMillis();
@@ -257,14 +266,15 @@ public class HttpsFileUploader  {
             
             // Calculate the total number of file bytes that will be sent
             // (accross all files)
-            long totalFileBytes=0;
+            long totalDataBytes=0;
             for (UploadFile uploadFile : uploadFilesX) {
-                totalFileBytes += uploadFile.getUploadFileSpec().getFile().length();
+                totalDataBytes += (uploadFile.getUploadItem().getSizeInBytes() == -1) ? 0 : uploadFile.getUploadItem().getSizeInBytes();
             }
             if (progressNotifier != null) {
-                progressNotifier.uploadStart(uploadFilesX.size(), totalFileBytes);
+                progressNotifier.uploadStart(uploadFilesX.size(), totalDataBytes);
             }
             
+            long totalDataBytesSent = 0;
             //  *********************
             // SENDING  FILES
             //  *********************
@@ -277,30 +287,35 @@ public class HttpsFileUploader  {
                 }
                 
                 // Write file
-                try (FileInputStream fis = new FileInputStream(uploadFile.getUploadFileSpec().getFile())) {
-                    byte[] buffer = new byte[8192];
+                try (InputStream is = uploadFile.getUploadItem().getInputStream()) {
+                    byte[] buffer = new byte[CHUNK_SIZE_IN_BYTES];
                     int bytes_read;
                     int total_written=0;
-                    int filesize = (int) uploadFile.getUploadFileSpec().getFile().length();
-                    int notif_size = filesize/100; // how often, in bytes, do we notify ?
+                    int filesize = (int) uploadFile.getUploadItem().getSizeInBytes();
+                    
+                    // In order to calculate pct completed we use a hardcoded size of 512 KBytes
+                    // for streams (since we do not know the actual size) and the actual size if
+                    // it's a file.
+                    int notif_size_total = (int)((uploadFile.getUploadItem().getSizeInBytes() == -1) ? 512*1024 : uploadFile.getUploadItem().getSizeInBytes());
+                    int notif_size = notif_size_total/100; // how often, in bytes, do we notify ?
                     long last_notif = 0;
                     int prevPct = -1;
                     
                     // Make sure we start at 0%
                     prevPct = notifyProgress(
                             progressNotifier,
-                            uploadFile.getUploadFileSpec().getFile(),
+                            uploadFile.getUploadItem().getFile(),
                             0,
                             filesize,
                             prevPct);
-                    while ((bytes_read = fis.read(buffer)) != -1) {
+                    while ((bytes_read = is.read(buffer)) != -1) {
                         out.write(buffer, 0, bytes_read);
                         total_written = total_written + bytes_read;
                         if ((total_written - last_notif) >= notif_size) {
                             // notify about progress
                             prevPct = notifyProgress(
                                     progressNotifier,
-                                    uploadFile.getUploadFileSpec().getFile(),
+                                    uploadFile.getUploadItem().getFile(),
                                     total_written,
                                     filesize,
                                     prevPct);
@@ -310,19 +325,19 @@ public class HttpsFileUploader  {
                     // Make sure we end at 100%
                     notifyProgress(
                             progressNotifier,
-                            uploadFile.getUploadFileSpec().getFile(),
+                            uploadFile.getUploadItem().getFile(),
                             filesize,
                             filesize,
                             prevPct);
+                    
+                    totalDataBytesSent += total_written;
                 }
                 
-
                 // Write multi-part footers to output stream
                 for (String str : uploadFile.getMpFooters()) {
                     out.writeBytes(str);
                 }
                 out.flush();
-
             }
             
             
@@ -352,7 +367,7 @@ public class HttpsFileUploader  {
 
             // End notification
             if (progressNotifier != null) {
-                progressNotifier.uploadEnd(totalFileBytes, System.currentTimeMillis() - startTime);
+                progressNotifier.uploadEnd(totalDataBytesSent, System.currentTimeMillis() - startTime);
             }
         }
         
@@ -402,13 +417,13 @@ public class HttpsFileUploader  {
     
     /**
      * Uploads a file. This is a convenience method of the more general
-     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) upload(...)} method.
+     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload(...)} method.
      * This method only uploads a single file and expects the destination field for
      * the file on the server to be named {@code "file"}.
      *
      * <p>After the method returns the result should be examined for errors.
      * 
-     * @see #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.FileUploadProgress) 
+     * @see #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) 
      * @param config configuration for the connection.
      * @param uploadFile file to upload
      * @return result of the upload operation
@@ -420,12 +435,26 @@ public class HttpsFileUploader  {
             HttpsFileUploaderConfig config,
             File uploadFile) throws IOException {
         
-        Map<String, UploadFileSpec> map = new HashMap<>();
-        map.put("file", new UploadFileSpec(uploadFile));
+        Map<String, UploadItem> map = new HashMap<>();
+        map.put("file", new UploadItemFile(uploadFile));
         return upload(config, map , null, null);
     }
     
     
+    /**
+     * Determines if there are upload items where the size is 
+     * unknown in advance. This means we cannot predict the total upload size.
+     * @param uploadItems
+     * @return 
+     */
+    private static boolean byteSizeIsKnown(Collection<UploadItem> uploadItems) {
+        for (UploadItem uploadItem : uploadItems) {
+            if (uploadItem.getSizeInBytes() == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Configures the HTTP/HTTPS connection.
@@ -511,7 +540,7 @@ public class HttpsFileUploader  {
     /**
      * Utility method
      */
-    private static int notifyProgress(FileUploadProgress notifier, File file, int bytesWritten, int bytesTotal, int prevPct) {
+    private static int notifyProgress(UploadProgress notifier, File file, int bytesWritten, int bytesTotal, int prevPct) {
         if (notifier != null) {
             int pct = (int) ((bytesWritten * 100L) / bytesTotal);
             
@@ -525,94 +554,25 @@ public class HttpsFileUploader  {
         return prevPct;
     }
     
-    /**
-     * Specification for a file to be uploaded.
-     */
-    public static class UploadFileSpec {
-        private final File file;
-        private final String mimeType;
-        private final String hintFilename;
-
-        /**
-         * Constructs a file upload specification.
-         * 
-         * <p>
-         * <code>hintFilename</code> will be derived from <code>
-         * file</code> argument.
-         * <p>
-         * <code>mimeType</code> will be guessed from <code>
-         * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String)
-         * }.
-         *
-         * 
-         * @param file file to upload.
-         */
-        public UploadFileSpec(File file) {
-            this(file, file.getName(), URLConnection.guessContentTypeFromName(file.getAbsolutePath()) );
-        }
-        
-        /**
-         * Constructs a file upload specification.
-         * 
-         * <p>
-         * <code>hintFilename</code> will be derived from <code>
-         * file</code> argument.
-          * 
-         * 
-         * @param file file to upload.
-         * @param hintFilename hint given to the server about what filename to use for the file.
-         */
-        public UploadFileSpec(File file, String hintFilename) {
-            this(file, hintFilename, URLConnection.guessContentTypeFromName(file.getAbsolutePath()));
-        }
-        
-        /**
-         * Constructs a file upload specification.
-         * 
-         * @param file file to upload.
-         * @param hintFilename hint given to the server about what filename to use for the file.
-         * @param mimeType MIME type for the file, e.g. <code>application/zip</code>.
-         * See <a href="http://en.wikipedia.org/wiki/Internet_media_type">Wikipedia</a> 
-         * for more information.
-         */
-        public UploadFileSpec(File file, String hintFilename, String mimeType ) {
-            this.file = file;
-            this.mimeType = (mimeType == null) ? URLConnection.guessContentTypeFromName(file.getAbsolutePath()) : mimeType;
-            this.hintFilename = (hintFilename == null) ? file.getName() : hintFilename;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        public String getMimeType() {
-            return mimeType;
-        }
-
-        public String getHintFilename() {
-            return this.hintFilename;
-        }
-    }
-    
     
     /**
      * Helper class. Only used internally.
      */
     private static class UploadFile  {
-        private final UploadFileSpec uploadFileSpec;
+        private final UploadItem uploadItem;
         private final ArrayList<String> mpFooters;
         private final ArrayList<String> mpHeaders;
         private final String formFieldName;
 
-        public UploadFile(String formFieldName, UploadFileSpec uploadFileSpec, ArrayList<String> mpHeaders, ArrayList<String> mpFooters) {
-            this.uploadFileSpec = uploadFileSpec;
+        public UploadFile(String formFieldName, UploadItem uploadItem, ArrayList<String> mpHeaders, ArrayList<String> mpFooters) {
+            this.uploadItem = uploadItem;
             this.mpHeaders = mpHeaders;
             this.mpFooters = mpFooters;
             this.formFieldName = formFieldName;
         }
 
-        public UploadFileSpec getUploadFileSpec() {
-            return uploadFileSpec;
+        public UploadItem getUploadItem() {
+            return uploadItem;
         }
 
         public ArrayList<String> getMpFooters() {
@@ -629,7 +589,7 @@ public class HttpsFileUploader  {
         
         public long  getTotalByteSize() {
             return HttpsFileUploader.getBytesSize(mpHeaders)  
-                    + uploadFileSpec.getFile().length()
+                    + uploadItem.getSizeInBytes()
                     + HttpsFileUploader.getBytesSize(mpFooters) ;
         }
     }

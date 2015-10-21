@@ -16,6 +16,8 @@ The library is entirely based on JDK and has no external dependencies.
 
 * Very small and has no external dependencies, e.g. no Apache HttpClient.
 
+* Can upload from a physical file (the typical use case) or directly from an `InputStream`.
+
 * Certificate validation can be turned off. This is important when working against a site that uses a self-signed certificate.
 
 * Support for endpoints that require authentication (only authentication type "Basic" is currently supported).
@@ -24,6 +26,7 @@ The library is entirely based on JDK and has no external dependencies.
 If the file being uploaded is large this means that Java will try to buffer all of the file in memory. 
 This class avoids this by streaming the file contents to the server and therefore allows
 infinitely large files to be uploaded without causing an out-of-memory error in the JVM.
+(this feature does not apply when uploading from a stream rather than physical file)
 
 * Support for explicitly setting network proxy. This is implemented without 
 the use of global system properties, so can be used without affecting other classes 

@@ -65,9 +65,8 @@ Apache HttpClient.
 ### Download
 
 You can either download from [here](https://github.com/Addicticks/httpsupload/releases) or better yet simply 
-include it in your build via Maven Central:
+include it in your build via Maven Central
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.addicticks.oss/httpsupload/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.addicticks.oss/httpsupload)
- (click me)
 
 
 ### Usage

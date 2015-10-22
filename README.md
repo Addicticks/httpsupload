@@ -73,6 +73,8 @@ You can either download from [here](https://github.com/Addicticks/httpsupload/re
     <version>xxxxx</version>
 </dependency>
 ```
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.addicticks.oss/httpsupload/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.addicticks.oss/httpsupload)
+
 
 ### Usage
 

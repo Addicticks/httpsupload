@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -168,7 +167,7 @@ public class HttpsFileUploader  {
      */
     public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
-            Map<String,UploadItem> uploadFiles, 
+            Map<String,? extends UploadItem> uploadFiles, 
             Map<String,String> otherFields,
             UploadProgress progressNotifier) throws IOException {
         
@@ -447,7 +446,7 @@ public class HttpsFileUploader  {
      * @param uploadItems
      * @return 
      */
-    private static boolean byteSizeIsKnown(Collection<UploadItem> uploadItems) {
+    private static boolean byteSizeIsKnown(Collection<? extends UploadItem> uploadItems) {
         for (UploadItem uploadItem : uploadItems) {
             if (uploadItem.getSizeInBytes() == -1) {
                 return false;

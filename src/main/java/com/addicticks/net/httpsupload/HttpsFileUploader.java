@@ -89,7 +89,7 @@ import javax.net.ssl.HttpsURLConnection;
  * // A single file is uploaded along with a single text field.
  * result = HttpsFileUploader.upload(
  *     uploaderConfig, 
- *     Collections.singletonMap("file1", new HttpsFileUploader.UploadItemFile(new File("hugefile.zip"))), 
+ *     Collections.singletonMap("file1", UploadItemFile(new File("hugefile.zip"))), 
  *     Collections.singletonMap("email", "johnny@company.com"), 
  *     this);
  * 

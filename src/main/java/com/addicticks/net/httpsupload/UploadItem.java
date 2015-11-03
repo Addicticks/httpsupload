@@ -28,6 +28,7 @@ public abstract class UploadItem {
 
     private final String mimeType;
     private final String hintFilename;
+    private String formFieldName = "file";
 
     public UploadItem(String hintFilename, String mimeType) {
         this.mimeType = mimeType;
@@ -64,5 +65,24 @@ public abstract class UploadItem {
      * @return 
      */
     public abstract File getFile();
+    
+    
+    /**
+     * Sets the form field name into which the file is uploaded.
+     * This will default to {@code "file"} if not set explicitly.
+     * @param formFieldName 
+     */
+    public void setFormFieldName(String formFieldName) {
+        this.formFieldName = formFieldName;
+    }
 
+    /**
+     * Gets the form field name into which the file is uploaded.
+     * This will default to {@code "file"} if not set explicitly
+     * using the {@link #setFormFieldName(java.lang.String)} method.
+     * @return form field name for the file
+     */
+    public String getFormFieldName() {
+        return this.formFieldName;
+    }
 }

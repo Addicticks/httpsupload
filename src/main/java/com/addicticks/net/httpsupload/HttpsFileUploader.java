@@ -29,7 +29,8 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.net.ssl.HttpsURLConnection;
@@ -89,7 +90,7 @@ import javax.net.ssl.HttpsURLConnection;
  * // A single file is uploaded along with a single text field.
  * result = HttpsFileUploader.upload(
  *     uploaderConfig, 
- *     Collections.singletonMap("file1", UploadItemFile(new File("hugefile.zip"))), 
+ *     Collections.singletonList(UploadItemFile(new File("hugefile.zip"))), 
  *     Collections.singletonMap("email", "johnny@company.com"), 
  *     this);
  * 
@@ -133,10 +134,10 @@ public class HttpsFileUploader  {
      * 
      * <p>After the method returns the result should be examined for errors.
      * 
-     * <p>Multiple files can be uploaded in the same method call as long as each file has
-     * its own destination field on the server, e.g. "file1", "file2", etc. 
-     * Upload of multiple files into the same field is not supported. (this is anyway a rather
-     * recent feature for example IE did not support it until v10).
+     * <p>Multiple files can be uploaded in the same method call and there's no
+     * requirement that each file is uploaded into its own field name. Whether or 
+     * not form field names for multiple files should be unique or not depends on 
+     * the capabilities of the endpoint.
      * 
      * <p>Some endpoints also allow uploading of other information than just the file(s). This is 
      * supported via the <code>otherFields</code> argument.<br>
@@ -149,12 +150,8 @@ public class HttpsFileUploader  {
      * <br>
      * 
      * @param config configuration for the connection.
-     * @param uploadFiles the files or streams to upload. The key of the map is the form field name into which the 
-     * file/stream is uploaded. Quite often the server side only allows a single file
-     * to be uploaded at a time. In this case this map only has a single element but then it
-     * may be easier to use the 
-     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.io.File)} method.
-     * Most often the form field name is {@code file} or if multiple files are accepted: {@code file1}, {@code file2}, {@code ...} and so on.
+     * @param uploadFiles the files or streams to upload. The files will be uploaded
+     * in the order of this list.
      * @param otherFields Other fields to be POST'ed into the form besides the file(s). Some forms allow
      * certain other fields, such as the name or email address of the uploader. The key of the map must
      * be the form field name and the value is the plain text value of the field. The {@code null} value 
@@ -167,11 +164,11 @@ public class HttpsFileUploader  {
      */
     public static HttpsFileUploaderResult upload(
             HttpsFileUploaderConfig config,
-            Map<String,? extends UploadItem> uploadFiles, 
+            List<? extends UploadItem> uploadFiles, 
             Map<String,String> otherFields,
             UploadProgress progressNotifier) throws IOException {
         
-        boolean byteSizeIsKnown = byteSizeIsKnown(uploadFiles.values());
+        boolean byteSizeIsKnown = byteSizeIsKnown(uploadFiles);
         
         // Setup the connection
         HttpURLConnection httpsUrlConnection = setup(config);
@@ -186,9 +183,10 @@ public class HttpsFileUploader  {
         // which includes MIME multi-part headers and footers. The only reason
         // for doing it this way is to be able to calculate the size of all
         // components BEFORE actually sending any data.
-        for (String uploadFormFieldName : uploadFiles.keySet()) {
-            String mimeType = uploadFiles.get(uploadFormFieldName).getMimeType();
-            String hintFilename = uploadFiles.get(uploadFormFieldName).getHintFilename();
+        for (UploadItem uItem : uploadFiles) {
+            String uploadFormFieldName =  uItem.getFormFieldName();
+            String mimeType = uItem.getMimeType();
+            String hintFilename = uItem.getHintFilename();
             ArrayList<String> mpHeaders = new ArrayList();
             ArrayList<String> mpFooters = new ArrayList();
 
@@ -203,7 +201,7 @@ public class HttpsFileUploader  {
             
             UploadFile uploadFile = new UploadFile(
                     uploadFormFieldName,
-                    uploadFiles.get(uploadFormFieldName),
+                    uItem,
                     mpHeaders,
                     mpFooters
                     );
@@ -434,9 +432,11 @@ public class HttpsFileUploader  {
             HttpsFileUploaderConfig config,
             File uploadFile) throws IOException {
         
-        Map<String, UploadItem> map = new HashMap<>();
-        map.put("file", new UploadItemFile(uploadFile));
-        return upload(config, map , null, null);
+        return upload(
+                config, 
+                Collections.singletonList(new UploadItemFile(uploadFile)), 
+                null, 
+                null);
     }
     
     

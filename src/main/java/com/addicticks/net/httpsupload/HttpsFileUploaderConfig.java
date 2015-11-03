@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 
 
 /**
- * Encapsulation of configuration values for the connection to
+ * Configuration values for the connection to
  * a HTTP or HTTPS server. 
  * 
  * @author Addicticks 
@@ -271,7 +271,7 @@ public class HttpsFileUploaderConfig {
      * Sets the list of Issuer Organization names that will be accepted for
      * the server's certificate.
      * 
-     * <p>This feature works only when {@link #isValidateCertificates()} is 
+     * <p>This feature only applies when {@link #isValidateCertificates()} is 
      * {@code false}. 
      * 
      * <p>The purpose of the feature is to provide some minimal security

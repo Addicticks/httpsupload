@@ -414,13 +414,13 @@ public class HttpsFileUploader  {
     
     /**
      * Uploads a file. This is a convenience method of the more general
-     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload(...)} method.
+     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload(...)} method.
      * This method only uploads a single file and expects the destination field for
      * the file on the server to be named {@code "file"}.
      *
      * <p>After the method returns the result should be examined for errors.
      * 
-     * @see #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) 
+     * @see #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) 
      * @param config configuration for the connection.
      * @param uploadFile file to upload
      * @return result of the upload operation

@@ -61,8 +61,8 @@ public interface UploadProgress {
      * 
      * <p>
      * Regarding multi-file uploads: Files are uploaded sequentially and in the
-     * order they are specified in the
-     * {@link HttpsFileUploader#upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.Map, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) uploadFiles map}.
+     * order they are specified in the {@code List} which is input to 
+     * {@link HttpsFileUploader#upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload method}.
      * This callback is about a single of each such file upload. Therefore the 
      * values in {@code totalSize} and {@code pct} relate only to this single
      * file upload and not the whole upload operation.

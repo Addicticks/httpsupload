@@ -17,6 +17,8 @@ package com.addicticks.net.httpsupload;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility methods.
@@ -26,6 +28,274 @@ public class Utils {
     private static final BigDecimal BDEC_KB = new BigDecimal(1024L);
     private static final BigDecimal BDEC_MB = new BigDecimal(1048576L);
     private static final BigDecimal BDEC_GB = new BigDecimal(1073741824L);
+
+
+    /**
+     * HTTP Status code (with text explanation)
+     * 
+     * <p>These are similar to the {@code HTTP-}codes found in {@link java.net.HttpURLConnection}
+     * however here they are represented as an {@code enum} and come with text as well.
+     * Also a few status codes that were missing in the JDK have been added (such as
+     * {@code HTTP_CONTINUE}).
+     * 
+     */
+    public enum HttpStatusCode {
+        /*
+         * Justification: Unfortunately such a list - with accompanying text -
+         * doesn't exist in the JDK. Apache HttpComponents has this but we do not
+         * want to bring in that library solely for this purpose. 
+         */
+        
+        /**
+         * 100 Continue
+         */
+        HTTP_CONTINUE(100, "Continue "),
+        /**
+         * 101 Switching Protocols
+         */
+        HTTP_SWITCHING_PROTOCOLS(101, "Switching Protocols "),
+        /**
+         * 102 Processing
+         */
+        HTTP_PROCESSING(102, "Processing "),
+        /**
+         * 200 OK
+         */
+        HTTP_OK(200, "OK "),
+        /**
+         * 201 Created
+         */
+        HTTP_CREATED(201, "Created "),
+        /**
+         * 202 Accepted
+         */
+        HTTP_ACCEPTED(202, "Accepted "),
+        /**
+         * 203 Non Authoritative Information
+         */
+        HTTP_NON_AUTHORITATIVE_INFORMATION(203, "Non Authoritative Information "),
+        /**
+         * 204 No Content
+         */
+        HTTP_NO_CONTENT(204, "No Content "),
+        /**
+         * 205 Reset Content
+         */
+        HTTP_RESET_CONTENT(205, "Reset Content "),
+        /**
+         * 206 Partial Content
+         */
+        HTTP_PARTIAL_CONTENT(206, "Partial Content "),
+        /**
+         * 207 Multi-Status or Partial Update OK
+         */
+        HTTP_MULTI_STATUS(207, "Multi-Status  or Partial Update OK"),
+        /**
+         * 300 Multiple Choices
+         */
+        HTTP_MULTIPLE_CHOICES(300, "Multiple Choices "),
+        /**
+         * 301 Moved Permanently
+         */
+        HTTP_MOVED_PERMANENTLY(301, "Moved Permanently "),
+        /**
+         * 302 Moved Temporarily
+         */
+        HTTP_MOVED_TEMPORARILY(302, "Moved Temporarily  "),
+        /**
+         * 303 See Other
+         */
+        HTTP_SEE_OTHER(303, "See Other "),
+        /**
+         * 304 Not Modified
+         */
+        HTTP_NOT_MODIFIED(304, "Not Modified "),
+        /**
+         * 305 Use Proxy
+         */
+        HTTP_USE_PROXY(305, "Use Proxy "),
+        /**
+         * 307 Temporary Redirect
+         */
+        HTTP_TEMPORARY_REDIRECT(307, "Temporary Redirect "),
+        /**
+         * 400 Bad Request
+         */
+        HTTP_BAD_REQUEST(400, "Bad Request "),
+        /**
+         * 401 Unauthorized
+         */
+        HTTP_UNAUTHORIZED(401, "Unauthorized "),
+        /**
+         * 402 Payment Required
+         */
+        HTTP_PAYMENT_REQUIRED(402, "Payment Required "),
+        /**
+         * 403 Forbidden
+         */
+        HTTP_FORBIDDEN(403, "Forbidden "),
+        /**
+         * 404 Not Found
+         */
+        HTTP_NOT_FOUND(404, "Not Found "),
+        /**
+         * 405 Method Not Allowed
+         */
+        HTTP_METHOD_NOT_ALLOWED(405, "Method Not Allowed "),
+        /**
+         * 406 Not Acceptable
+         */
+        HTTP_NOT_ACCEPTABLE(406, "Not Acceptable "),
+        /**
+         * 407 Proxy Authentication Required
+         */
+        HTTP_PROXY_AUTHENTICATION_REQUIRED(407, "Proxy Authentication Required "),
+        /**
+         * 408 Request Timeout
+         */
+        HTTP_REQUEST_TIMEOUT(408, "Request Timeout"),
+        /**
+         * 409 Conflict
+         */
+        HTTP_CONFLICT(409, "Conflict "),
+        /**
+         * 410 Gone
+         */
+        HTTP_GONE(410, "Gone "),
+        /**
+         * 411 Length Required
+         */
+        HTTP_LENGTH_REQUIRED(411, "Length Required "),
+        /**
+         * 412 Precondition Failed
+         */
+        HTTP_PRECONDITION_FAILED(412, "Precondition Failed "),
+        /**
+         * 413 Request Entity Too Large
+         */
+        HTTP_REQUEST_TOO_LONG(413, "Request Entity Too Large"),
+        /**
+         * 414 Request-URI Too Long
+         */
+        HTTP_REQUEST_URI_TOO_LONG(414, "Request-URI Too Long "),
+        /**
+         * 415 Unsupported Media Type
+         */
+        HTTP_UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type "),
+        /**
+         * 416 Requested Range Not Satisfiable
+         */
+        HTTP_REQUESTED_RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable "),
+        /**
+         * 417 Expectation Failed
+         */
+        HTTP_EXPECTATION_FAILED(417, "Expectation Failed "),
+        /**
+         * 419 Insufficient Space on Resource
+         */
+        HTTP_INSUFFICIENT_SPACE_ON_RESOURCE(419, "Insufficient Space on Resource"),
+        /**
+         * 420 Method Failure
+         */
+        HTTP_METHOD_FAILURE(420, "Method Failure"),
+        /**
+         * 422 Unprocessable Entity
+         */
+        HTTP_UNPROCESSABLE_ENTITY(422, "Unprocessable Entity "),
+        /**
+         * 423 Locked
+         */
+        HTTP_LOCKED(423, "Locked "),
+        /**
+         * 424 Failed Dependency
+         */
+        HTTP_FAILED_DEPENDENCY(424, "Failed Dependency "),
+        /**
+         * 500 Server Error
+         */
+        HTTP_INTERNAL_SERVER_ERROR(500, "Server Error "),
+        /**
+         * 501 Not Implemented
+         */
+        HTTP_NOT_IMPLEMENTED(501, "Not Implemented "),
+        /**
+         * 502 Bad Gateway
+         */
+        HTTP_BAD_GATEWAY(502, "Bad Gateway "),
+        /**
+         * 503 Service Unavailable
+         */
+        HTTP_SERVICE_UNAVAILABLE(503, "Service Unavailable "),
+        /**
+         * 504 Gateway Timeout
+         */
+        HTTP_GATEWAY_TIMEOUT(504, "Gateway Timeout "),
+        /**
+         * 505 HTTP Version Not Supported
+         */
+        HTTP_HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported "),
+        /**
+         * 507 Insufficient Storage
+         */
+        HTTP_INSUFFICIENT_STORAGE(507, "Insufficient Storage ");
+        private final int sc;
+        private final String txt;
+        private static final Map<Integer, HttpStatusCode> map = new HashMap<>();
+    
+        HttpStatusCode(int sc, String txt) {
+            this.sc = sc;
+            this.txt = txt;
+        }
+        
+        static {
+            for (HttpStatusCode sCode : HttpStatusCode.values()) {
+                if (map.put(sCode.sc, sCode) != null) {
+                    // Just a warning to the maintainer of this library.
+                    throw new RuntimeException("Status code " + sCode.sc + " already exists in this enum. Please remove duplicate");
+                }
+            }
+        }
+
+        /**
+         * Gets the numerical status code.
+         * @return 
+         */
+        public int getStatusCode() {
+            return sc;
+        }
+
+        
+        
+        /**
+         * Gets a one-line short text for the status code.
+         * @return 
+         */
+        public String getText() {
+            return txt;
+        }
+        
+        /**
+         * Gets an enumeration value from a numeric HTTP status code.
+         * @param sc status code
+         * @return enumeration value or {@code null} if the provided status
+         *    code is unknown to this enumeration.
+         */
+        public static HttpStatusCode fromNumStatusCode(int sc) {
+            return map.get(sc);
+        }
+
+        /**
+         * Gets a string representation, the numerical status
+         * code concatenated with the status code text.
+         * @return 
+         */
+        @Override
+        public String toString() {
+            return sc + " " + txt;
+        }
+        
+    }
+
     
     private Utils() {
     }

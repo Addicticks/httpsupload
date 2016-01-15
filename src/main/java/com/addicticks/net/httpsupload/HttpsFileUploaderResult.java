@@ -81,6 +81,9 @@ public class HttpsFileUploaderResult {
      * @return server response
      */
     public String getResponseTextNoHtml() {
+        if (responseText == null) {
+            return null;
+        }
         return Utils.stripHtml(responseText);
     }
     

@@ -362,6 +362,12 @@ public class Utils {
      * @return
      */
     public static String stripHtml(String str) {
+        if (str == null) {
+            return null;
+        }
+        if (str.isEmpty()) {
+            return str;
+        }
         boolean intag = false;
         boolean tagHasEnded = false;
         StringBuilder outp = new StringBuilder();

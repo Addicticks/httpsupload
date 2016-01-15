@@ -39,9 +39,10 @@ public class UploadItemFile extends UploadItem {
      * @param hintFilename hint given to the server about what filename to use
      * for the file.
      * @param mimeType MIME type for the file, e.g.
-     * <code>application/zip</code>. See
+     * <code>"application/zip"</code>. See
      * <a href="http://en.wikipedia.org/wiki/Internet_media_type">Wikipedia</a>
-     * for more information.
+     * for more information. If argument is null then the MIME type will be 
+     * guessed from <code>file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
      */
     public UploadItemFile(File file, String hintFilename, String mimeType) {
         super(
@@ -59,8 +60,7 @@ public class UploadItemFile extends UploadItem {
      * file</code> argument.
      * <p>
      * <code>mimeType</code> will be guessed from <code>
-     * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String)
-     * }.
+     * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
      *
      *
      * @param file file to upload.
@@ -76,6 +76,9 @@ public class UploadItemFile extends UploadItem {
      * <code>hintFilename</code> will be derived from <code>
      * file</code> argument.
      *
+     * <p>
+     * <code>mimeType</code> will be guessed from <code>file</code> argument 
+     * using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
      *
      * @param file file to upload.
      * @param hintFilename hint given to the server about what filename to use

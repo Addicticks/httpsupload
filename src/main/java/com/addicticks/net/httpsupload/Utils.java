@@ -408,4 +408,22 @@ public class Utils {
         }
         return outp.toString();
     }
+    
+    /**
+     * Gets the numerical HTTP status code concatenated with the
+     * text representing that status code, for example {@code "403 Forbidden"}.
+     * 
+     * <p>If the status code is unknown then the text will be 
+     * {@code "<Unknown status code>"}.
+     * @param sc numerical HTTP status code
+     * @return 
+     */
+    public static String getHttpStatusCodeText(int sc) {
+        HttpStatusCode sCode = HttpStatusCode.fromNumStatusCode(sc);
+        if (sCode == null) {
+            return sc + " <unknown status code>";
+        } else {
+            return sCode.toString();
+        }
+    }
 }

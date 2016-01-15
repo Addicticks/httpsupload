@@ -31,7 +31,7 @@ public class Utils {
 
 
     /**
-     * HTTP Status code (with text explanation)
+     * HTTP Response Status code (with text explanation)
      * 
      * <p>These are similar to the {@code HTTP-}codes found in {@link java.net.HttpURLConnection}
      * however here they are represented as an {@code enum} and come with text as well.

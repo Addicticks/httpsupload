@@ -33,13 +33,31 @@ public class HttpsFileUploaderResult {
     
     /**
      * Gets the HTTP response status code. For a successful upload this
-     * should be equal to {@link java.net.HttpURLConnection#HTTP_OK}.
+     * should be equal to {@code 200}.
      * 
+     * <p>To get the text that represents the given HTTP status code the
+     * method {@link Utils#getHttpStatusCodeText(int)} can be used.
+     * 
+     * @see #getHttpStatusCodeEnum() 
      * @see #isError() 
      * @return status code
      */
     public int getHttpStatusCode() {
         return httpStatusCode;
+    }
+    
+    /**
+     * Gets the HTTP response status code as an enum. Theoretically this can be
+     * {@code null} if the numerical status code is unknown in the enum.
+     *
+     * <p>For a successful upload this should be equal to
+     * {@link Utils.HttpStatusCode#HTTP_OK}.
+     * 
+     * @see #getHttpStatusCode()
+     * @return status code enum
+     */
+    public Utils.HttpStatusCode getHttpStatusCodeEnum() {
+        return Utils.HttpStatusCode.fromNumStatusCode(httpStatusCode);
     }
 
     /**
@@ -68,10 +86,10 @@ public class HttpsFileUploaderResult {
     
     /**
      * Convenience method. Returns true if {@link #getHttpStatusCode() }
-     * is anything other than {@link java.net.HttpURLConnection#HTTP_OK}.
+     * is anything other than {@link Utils.HttpStatusCode#HTTP_OK}.
      * @return 
      */
     public boolean isError() {
-        return (httpStatusCode != HttpURLConnection.HTTP_OK);
+        return (httpStatusCode != Utils.HttpStatusCode.HTTP_OK.getStatusCode());
     }
 }

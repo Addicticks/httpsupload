@@ -66,7 +66,8 @@ public class HttpsFileUploaderResult {
      * upload it is rarely useful. Instead the HTTP status code should be used
      * to verify if an upload has been successful.
      *
-     * @return server response
+     * @return server response, may be {@code null} if server's response 
+     *    doesn't include text.
      */
     public String getResponseText() {
         return responseText;
@@ -78,7 +79,8 @@ public class HttpsFileUploaderResult {
      * and {@code <br>}, {@code <p>}, {@code <h1>}, {@code <h2>} and {@code <h3>}
      * has been replaced with newline characters for readability.
      *
-     * @return server response
+     * @return server response, may be {@code null} if server's response 
+     *    doesn't include text.
      */
     public String getResponseTextNoHtml() {
         if (responseText == null) {

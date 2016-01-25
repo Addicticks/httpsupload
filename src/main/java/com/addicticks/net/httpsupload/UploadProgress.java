@@ -32,7 +32,7 @@ public interface UploadProgress {
     
     /**
      * Informs that an upload operation is about to begin. An upload
-     * operation may include multiple files ({@code noOfFiles > 1}.
+     * operation may include multiple files ({@code noOfFiles > 1}).
      * 
      * @param noOfItems the number of files/streams that will be uploaded in this
      * upload operation. 

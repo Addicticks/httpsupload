@@ -42,7 +42,9 @@ public class UploadItemFile extends UploadItem {
      * <code>"application/zip"</code>. See
      * <a href="http://en.wikipedia.org/wiki/Internet_media_type">Wikipedia</a>
      * for more information. If argument is null then the MIME type will be 
-     * guessed from <code>file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
+     * guessed from <code>file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}
+     * and if this fails then {@link HttpsFileUploader#DEFAULT_MIME_TYPE DEFAULT_MIME_TYPE} will
+     * be used.
      */
     public UploadItemFile(File file, String hintFilename, String mimeType) {
         super(
@@ -60,7 +62,9 @@ public class UploadItemFile extends UploadItem {
      * file</code> argument.
      * <p>
      * <code>mimeType</code> will be guessed from <code>
-     * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
+     * file</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}
+     * and if this fails then {@link HttpsFileUploader#DEFAULT_MIME_TYPE DEFAULT_MIME_TYPE} will
+     * be used.
      *
      *
      * @param file file to upload.
@@ -78,7 +82,9 @@ public class UploadItemFile extends UploadItem {
      *
      * <p>
      * <code>mimeType</code> will be guessed from <code>file</code> argument 
-     * using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
+     * using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}
+     * and if this fails then {@link HttpsFileUploader#DEFAULT_MIME_TYPE DEFAULT_MIME_TYPE} will
+     * be used.
      *
      * @param file file to upload.
      * @param hintFilename hint given to the server about what filename to use

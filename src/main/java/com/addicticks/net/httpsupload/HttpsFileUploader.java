@@ -109,6 +109,11 @@ import javax.net.ssl.HttpsURLConnection;
 public class HttpsFileUploader  {
 
 
+    /**
+     * The MIME type which will be used if none can be determined automatically
+     * or if none is directly specified.
+     */
+    public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
     
     private static final int CHUNK_SIZE_IN_BYTES = 8192;
     
@@ -185,7 +190,7 @@ public class HttpsFileUploader  {
         // components BEFORE actually sending any data.
         for (UploadItem uItem : uploadFiles) {
             String uploadFormFieldName =  uItem.getFormFieldName();
-            String mimeType = uItem.getMimeType();
+            String mimeType = (uItem.getMimeType() == null) ? DEFAULT_MIME_TYPE : uItem.getMimeType();
             String hintFilename = uItem.getHintFilename();
             ArrayList<String> mpHeaders = new ArrayList();
             ArrayList<String> mpFooters = new ArrayList();
@@ -416,7 +421,10 @@ public class HttpsFileUploader  {
      * Uploads a file. This is a convenience method of the more general
      * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload(...)} method.
      * This method only uploads a single file and expects the destination field for
-     * the file on the server to be named {@code "file"}.
+     * the file on the server to be named {@code "file"}. The MIME type of the
+     * file will be guessed from <code>uploadFile</code> argument using 
+     * {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}.
+     * If this fails, {@link #DEFAULT_MIME_TYPE} will be used. 
      *
      * <p>After the method returns the result should be examined for errors.
      * 
@@ -438,6 +446,39 @@ public class HttpsFileUploader  {
                 null, 
                 null);
     }
+    
+/**
+     * Uploads a file. This is a convenience method of the more general
+     * {@link #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) upload(...)} method.
+     * This method only uploads a single file and expects the destination field for
+     * the file on the server to be named {@code "file"}.  
+     *
+     * <p>After the method returns the result should be examined for errors.
+     * 
+     * @see #upload(com.addicticks.net.httpsupload.HttpsFileUploaderConfig, java.util.List, java.util.Map, com.addicticks.net.httpsupload.UploadProgress) 
+     * @param config configuration for the connection.
+     * @param uploadFile file to upload
+     * @param mimeType MIME type of the file. If argument is null then the MIME type will be 
+     * guessed from <code>uploadFile</code> argument using {@link java.net.URLConnection#guessContentTypeFromName(java.lang.String) URLConnection#guessContentTypeFromName()}
+     * and if this fails then {@link HttpsFileUploader#DEFAULT_MIME_TYPE DEFAULT_MIME_TYPE} will
+     * be used.
+     * @return result of the upload operation
+
+     * @throws IOException if the endpoint cannot be reached or if input file cannot be
+     * read.
+     */    
+    public static HttpsFileUploaderResult upload(
+            HttpsFileUploaderConfig config,
+            File uploadFile,
+            String mimeType) throws IOException {
+        
+        return upload(
+                config, 
+                Collections.singletonList(new UploadItemFile(uploadFile, null, mimeType)), 
+                null, 
+                null);
+    }
+    
     
     
     /**
